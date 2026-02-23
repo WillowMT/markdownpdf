@@ -10,6 +10,8 @@ from .styles import build_full_css
 
 # WeasyPrint has no reliable rendering for <input> form elements, so we swap
 # them out for Unicode ballot boxes before the HTML ever reaches the PDF engine.
+_RE_PAGE_AT_RULE = re.compile(r"@page\s*\{[^{}]*\}", re.DOTALL)
+
 _RE_CHECKED = re.compile(
     r'<input class="task-list-item-checkbox" type="checkbox" disabled checked\s*/?>',
     re.IGNORECASE,
@@ -62,6 +64,22 @@ _HTML_TEMPLATE = """\
 </body>
 </html>
 """
+
+
+def markdown_to_html(source: str) -> str:
+    """Return a complete browser-renderable HTML page for the live preview iframe."""
+    body = _replace_checkboxes(_md(source))
+    # @page at-rules are PDF-only; strip them so the browser preview looks clean
+    preview_css = _RE_PAGE_AT_RULE.sub("", build_full_css())
+    return (
+        '<!DOCTYPE html><html lang="en"><head>'
+        '<meta charset="utf-8"/>'
+        f"<style>{preview_css}</style>"
+        "</head>"
+        '<body style="padding:2rem 2.5rem;max-width:860px;margin:0 auto">'
+        f"{body}"
+        "</body></html>"
+    )
 
 
 def markdown_to_pdf(source: str, title: str = "document") -> bytes:

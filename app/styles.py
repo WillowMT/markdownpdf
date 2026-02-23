@@ -41,8 +41,8 @@ a:hover {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin-top: 24px;
-  margin-bottom: 16px;
+  margin-top: 32px;
+  margin-bottom: 20px;
   font-weight: 600;
   line-height: 1.25;
   page-break-after: avoid;
@@ -67,11 +67,11 @@ h6 { font-size: 0.85em; color: #57606a; }
 
 p {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 blockquote {
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   padding: 0 1em;
   color: #57606a;
   border-left: 0.25em solid #d0d7de;
@@ -93,7 +93,7 @@ code {
 /* Code blocks — wraps pygments .highlight div */
 pre {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   padding: 16px;
   overflow: auto;
   font-size: 85%;
@@ -117,7 +117,7 @@ pre code,
 .highlight {
   background: #f6f8fa;
   border-radius: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   padding: 16px;
   overflow: auto;
   font-size: 85%;
@@ -137,7 +137,7 @@ table {
   border-spacing: 0;
   border-collapse: collapse;
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   overflow: auto;
   display: table;
   page-break-inside: avoid;
@@ -163,9 +163,9 @@ table tr:nth-child(2n) {
 }
 
 hr {
-  height: 0.25em;
+  height: 1px;
   padding: 0;
-  margin: 24px 0;
+  margin: 32px 0;
   background-color: #d0d7de;
   border: 0;
 }
@@ -173,7 +173,7 @@ hr {
 ul,
 ol {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   padding-left: 2em;
 }
 
