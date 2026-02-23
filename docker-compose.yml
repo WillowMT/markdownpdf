@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  markdown-pdf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8000
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.markdown-pdf.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.markdown-pdf.entrypoints=websecure"
+      - "traefik.http.routers.markdown-pdf.tls.certResolver=letsencrypt"
+      - "traefik.http.services.markdown-pdf.loadbalancer.server.port=8000"
+
+networks:
+  dokploy-network:
+    external: true

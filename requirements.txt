@@ -1,0 +1,6 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+mistune>=3.0.2
+pygments>=2.18.0
+weasyprint>=63.1
+python-multipart>=0.0.20

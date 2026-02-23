@@ -1,0 +1,53 @@
+import io
+
+import mistune
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import TextLexer, get_lexer_by_name
+from weasyprint import CSS, HTML
+
+from .styles import build_full_css
+
+_FORMATTER = HtmlFormatter(style="friendly", cssclass="highlight", nowrap=False)
+
+
+class _HighlightRenderer(mistune.HTMLRenderer):
+    """mistune renderer that delegates fenced code blocks to Pygments."""
+
+    def block_code(self, code: str, **attrs: object) -> str:
+        info = (attrs.get("info") or "").strip()
+        lang = info.split(None, 1)[0] if info else ""
+        try:
+            lexer = get_lexer_by_name(lang, stripall=True) if lang else TextLexer()
+        except Exception:
+            lexer = TextLexer()
+        return highlight(code, lexer, _FORMATTER)
+
+
+_md = mistune.create_markdown(
+    renderer=_HighlightRenderer(escape=False),
+    plugins=["table", "strikethrough", "task_lists", "url", "def_list"],
+)
+
+_HTML_TEMPLATE = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{title}</title>
+</head>
+<body class="markdown-body">
+{body}
+</body>
+</html>
+"""
+
+
+def markdown_to_pdf(source: str, title: str = "document") -> bytes:
+    """Convert a Markdown string to PDF bytes using GitHub-flavoured styling."""
+    body = _md(source)
+    html_content = _HTML_TEMPLATE.format(title=title, body=body)
+
+    css = CSS(string=build_full_css())
+    pdf_bytes = HTML(string=html_content, base_url=None).write_pdf(stylesheets=[css])
+    return pdf_bytes
