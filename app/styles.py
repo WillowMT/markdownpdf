@@ -203,13 +203,27 @@ img {
 }
 
 /* GFM task lists */
-.task-list-item {
-  list-style-type: none;
+ul:has(.task-list-item) {
+  padding-left: 0.5em;
+  list-style: none;
 }
 
-.task-list-item-checkbox {
-  margin: 0 0.2em 0.25em -1.4em;
-  vertical-align: middle;
+.task-list-item {
+  list-style-type: none;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+}
+
+.task-checkbox {
+  flex-shrink: 0;
+  font-size: 1.05em;
+  line-height: 1.5;
+  color: #57606a;
+}
+
+.task-checked {
+  color: #1a7f37;
 }
 
 /* Definition lists */

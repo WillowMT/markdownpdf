@@ -1,4 +1,4 @@
-import io
+import re
 
 import mistune
 from pygments import highlight
@@ -7,6 +7,27 @@ from pygments.lexers import TextLexer, get_lexer_by_name
 from weasyprint import CSS, HTML
 
 from .styles import build_full_css
+
+# WeasyPrint has no reliable rendering for <input> form elements, so we swap
+# them out for Unicode ballot boxes before the HTML ever reaches the PDF engine.
+_RE_CHECKED = re.compile(
+    r'<input class="task-list-item-checkbox" type="checkbox" disabled checked\s*/?>',
+    re.IGNORECASE,
+)
+_RE_UNCHECKED = re.compile(
+    r'<input class="task-list-item-checkbox" type="checkbox" disabled\s*/?>',
+    re.IGNORECASE,
+)
+
+
+def _replace_checkboxes(html: str) -> str:
+    html = _RE_CHECKED.sub(
+        '<span class="task-checkbox task-checked">&#x2611;</span>', html
+    )
+    html = _RE_UNCHECKED.sub(
+        '<span class="task-checkbox">&#x2610;</span>', html
+    )
+    return html
 
 _FORMATTER = HtmlFormatter(style="friendly", cssclass="highlight", nowrap=False)
 
@@ -45,7 +66,7 @@ _HTML_TEMPLATE = """\
 
 def markdown_to_pdf(source: str, title: str = "document") -> bytes:
     """Convert a Markdown string to PDF bytes using GitHub-flavoured styling."""
-    body = _md(source)
+    body = _replace_checkboxes(_md(source))
     html_content = _HTML_TEMPLATE.format(title=title, body=body)
 
     css = CSS(string=build_full_css())
