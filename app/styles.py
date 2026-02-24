@@ -1,9 +1,27 @@
+import re
+
 from pygments.formatters import HtmlFormatter
+
+_RE_PAGE_AT_RULE = re.compile(r"@page\s*\{[^{}]*\}", re.DOTALL)
 
 # Pygments syntax highlighting CSS (friendly style — clean on white)
 PYGMENTS_CSS = HtmlFormatter(style="friendly", cssclass="highlight").get_style_defs(
     ".highlight"
 )
+
+# ── style option constants ─────────────────────────────────────────────────────
+
+FONT_FAMILIES: dict[str, str] = {
+    "system": '-apple-system, BlinkMacSystemFont, "Segoe UI", "Liberation Sans", Helvetica, Arial, sans-serif',
+    "serif": '"Liberation Serif", Georgia, "Times New Roman", Times, serif',
+    "mono": 'ui-monospace, SFMono-Regular, "Liberation Mono", Menlo, Consolas, monospace',
+}
+
+_PAGE_MARGINS: dict[str, str] = {
+    "narrow": "1.5cm 1.5cm",
+    "normal": "2cm 2.5cm",
+    "wide": "2.5cm 4cm",
+}
 
 GITHUB_CSS = """
 @page {
@@ -248,3 +266,75 @@ dl dd {
 
 def build_full_css() -> str:
     return GITHUB_CSS + "\n" + PYGMENTS_CSS
+
+
+def build_override_css(
+    font_family: str = "system",
+    font_size: int = 16,
+    line_height: float = 1.5,
+    paragraph_spacing: int = 20,
+    code_size: int = 85,
+    page_margin: str = "normal",
+) -> str:
+    """Generate a CSS override sheet applied on top of the base GitHub CSS.
+
+    Because this sheet is appended last, every declaration here wins via
+    cascade order without needing !important.
+    """
+    family = FONT_FAMILIES.get(font_family, FONT_FAMILIES["system"])
+    margin = _PAGE_MARGINS.get(page_margin, _PAGE_MARGINS["normal"])
+    h_top = round(paragraph_spacing * 1.6)
+
+    return f"""
+@page {{
+  size: A4;
+  margin: {margin};
+  @bottom-center {{
+    content: counter(page) " / " counter(pages);
+    font-size: 10px;
+    color: #57606a;
+    font-family: "Liberation Sans", Helvetica, Arial, sans-serif;
+  }}
+}}
+
+body {{
+  font-family: {family};
+  font-size: {font_size}px;
+  line-height: {line_height};
+}}
+
+p {{
+  margin-bottom: {paragraph_spacing}px;
+}}
+
+ul, ol {{
+  margin-bottom: {paragraph_spacing}px;
+}}
+
+blockquote {{
+  margin-bottom: {paragraph_spacing}px;
+}}
+
+table {{
+  margin-bottom: {paragraph_spacing}px;
+}}
+
+pre {{
+  margin-bottom: {paragraph_spacing}px;
+  font-size: {code_size}%;
+}}
+
+.highlight {{
+  margin-bottom: {paragraph_spacing}px;
+  font-size: {code_size}%;
+}}
+
+h1, h2, h3, h4, h5, h6 {{
+  margin-top: {h_top}px;
+  margin-bottom: {paragraph_spacing}px;
+}}
+
+hr {{
+  margin: {h_top}px 0;
+}}
+"""

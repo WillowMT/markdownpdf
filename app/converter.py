@@ -6,12 +6,10 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import TextLexer, get_lexer_by_name
 from weasyprint import CSS, HTML
 
-from .styles import build_full_css
+from .styles import build_full_css, build_override_css, _RE_PAGE_AT_RULE
 
 # WeasyPrint has no reliable rendering for <input> form elements, so we swap
 # them out for Unicode ballot boxes before the HTML ever reaches the PDF engine.
-_RE_PAGE_AT_RULE = re.compile(r"@page\s*\{[^{}]*\}", re.DOTALL)
-
 _RE_CHECKED = re.compile(
     r'<input class="task-list-item-checkbox" type="checkbox" disabled checked\s*/?>',
     re.IGNORECASE,
@@ -66,15 +64,16 @@ _HTML_TEMPLATE = """\
 """
 
 
-def markdown_to_html(source: str) -> str:
+def markdown_to_html(source: str, **style_opts: object) -> str:
     """Return a complete browser-renderable HTML page for the live preview iframe."""
     body = _replace_checkboxes(_md(source))
-    # @page at-rules are PDF-only; strip them so the browser preview looks clean
+    # Strip @page at-rules — PDF-only, unwanted in browser iframe
     preview_css = _RE_PAGE_AT_RULE.sub("", build_full_css())
+    override_css = _RE_PAGE_AT_RULE.sub("", build_override_css(**style_opts))
     return (
         '<!DOCTYPE html><html lang="en"><head>'
         '<meta charset="utf-8"/>'
-        f"<style>{preview_css}</style>"
+        f"<style>{preview_css}{override_css}</style>"
         "</head>"
         '<body style="padding:2rem 2.5rem;max-width:860px;margin:0 auto">'
         f"{body}"
@@ -82,11 +81,14 @@ def markdown_to_html(source: str) -> str:
     )
 
 
-def markdown_to_pdf(source: str, title: str = "document") -> bytes:
+def markdown_to_pdf(source: str, title: str = "document", **style_opts: object) -> bytes:
     """Convert a Markdown string to PDF bytes using GitHub-flavoured styling."""
     body = _replace_checkboxes(_md(source))
     html_content = _HTML_TEMPLATE.format(title=title, body=body)
 
-    css = CSS(string=build_full_css())
-    pdf_bytes = HTML(string=html_content, base_url=None).write_pdf(stylesheets=[css])
+    base_css = CSS(string=build_full_css())
+    override_css = CSS(string=build_override_css(**style_opts))
+    pdf_bytes = HTML(string=html_content, base_url=None).write_pdf(
+        stylesheets=[base_css, override_css]
+    )
     return pdf_bytes
